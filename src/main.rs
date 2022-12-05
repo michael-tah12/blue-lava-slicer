@@ -1,30 +1,28 @@
 mod gcode_generator;
 mod primitives;
+
 use primitives::path::Path;
-use primitives::point::Point;
 
 fn main() {
+    let mut gcode_vec: Vec<String> = Vec::new();
+
     // print a rectangle
-    let point1: Point = Point {
-        x: 0.0,
-        y: 0.0,
-        z: 0.0,
+    let point1: [f64; 3] = [0.0, 0.0, 0.0];
+    let point2: [f64; 3] = [1.0, 0.0, 0.0];
+
+    let path1: Path = Path {
+        target: point1,
+        extrude: false,
     };
 
-    let point2: Point = Point {
-        x: 1.0,
-        y: 0.0,
-        z: 0.0,
-    };
-    let points: [Point; 2] = [point1, point2];
-
-    let path: Path = Path {
-        points: points,
+    let path2: Path = Path {
+        target: point2,
         extrude: true,
     };
-    let paths: &[Path] = &[path];
+    let paths: &[Path] = &[path1, path2];
 
     let test: String = gcode_generator::from_paths(paths);
+    gcode_vec.push(test);
 
-    println!("{:?}", test)
+    print!("{}", gcode_vec.join("\n"))
 }

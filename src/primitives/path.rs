@@ -1,6 +1,4 @@
-use crate::primitives::point::Point;
-
 pub struct Path {
-    pub points: [Point; 2],
+    pub target: [f64; 3],
     pub extrude: bool,
 }
