@@ -5,10 +5,10 @@ use crate::read_config::Config;
 pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -> String {
     let mut gcode: String = String::from("");
     let mut start = Vector3::new(0.0, 0.0, 0.0);
-    let mut end = Vector3::new(0.0, 0.0, 0.0);
+    let mut end: Vector3<f64>;
     for slice in paths.iter() {
         let mut slice_retain = slice.to_owned();
-        for i in 0..slice.len() {
+        for _i in 0..slice.len() {
             let (path, start_point_idx) = find_nearest_path(&slice_retain, &start);
             start = path[start_point_idx];
             let end_point_idx = if start_point_idx == 0 { 1 } else { 0 };
@@ -18,6 +18,7 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
             let path_volume = config.quality.line_width * config.quality.layer_height * length;
             let radius: f64 = config.general.filament_diameter / 2.0;
             let filament_length = path_volume / (3.14 * radius.powf(2.0));
+
             let line = format!(
                 "{} X{} Y{} E{:.2}\n",
                 "G1", path_vec[0], path_vec[1], filament_length
@@ -27,6 +28,8 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
             slice_retain.retain(|p| *p != path);
             start = end;
         }
+        let z_hop = format!("{} Z{}\n", "G0", config.quality.layer_height);
+        gcode.push_str(z_hop.as_str());
     }
     return gcode;
 }

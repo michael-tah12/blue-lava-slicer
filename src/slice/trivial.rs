@@ -35,7 +35,7 @@ pub fn slice(triangles: &Vec<Triangle>, plane_z: f64) -> Vec<[Vector3<f64>; 2]> 
                 sliceable = false;
                 use_original_points = true;
             }
-            if slicing_point_exists(pv, point2, &pp[2]) {
+            if slicing_point_exists(pv, point2, &pp[2]) && idx < 2 {
                 if sliceable == true {
                     vv = *point2 - *pv;
                     slicing_points[idx] = calculate_slicing_point(&pv, &vv, &pp, &vp);

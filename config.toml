@@ -1,5 +1,4 @@
 [general]
-placement = [100.0,100.0,0.0]
 filament_diameter = 1.75
 
 [quality]

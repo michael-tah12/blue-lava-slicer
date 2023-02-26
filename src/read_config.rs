@@ -1,4 +1,3 @@
-use nalgebra::Vector3;
 use serde_derive::Deserialize;
 use std::fs;
 use toml;
@@ -11,7 +10,6 @@ pub struct Config {
 
 #[derive(Debug, Deserialize)]
 pub struct General {
-    pub placement: [f64; 3],
     pub filament_diameter: f64,
 }
 
