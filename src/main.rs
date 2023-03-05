@@ -35,5 +35,5 @@ fn main() {
     let gcode_complete = format!("{}{}", gcode_head, gcode_str);
 
     fs::write("suzanne.gcode", &gcode_complete).expect("");
-    println!("{:?}", gcode_complete);
+    //println!("{:?}", gcode_complete);
 }

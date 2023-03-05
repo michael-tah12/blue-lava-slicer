@@ -1,3 +1,7 @@
 /target
 suzanne.gcode
 cube.gcode
+*.blend*
+suzanne.gcode
+3DBenchy.gcode
+*.stl
