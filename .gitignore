@@ -5,3 +5,4 @@ cube.gcode
 suzanne.gcode
 3DBenchy.gcode
 *.stl
+.DS_Store

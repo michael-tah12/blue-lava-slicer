@@ -18,25 +18,22 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
             } else {
                 (found_path, path, start_point_idx) = find_connecting_path(&slice_retain, &start);
             }
+            let line: String;
             if found_path {
                 start = path[start_point_idx];
                 let end_point_idx = if start_point_idx == 0 { 1 } else { 0 };
                 end = path[end_point_idx];
-                let path_vec = end - start;
-                let length = path_vec.norm();
-                let path_volume = config.quality.line_width * config.quality.layer_height * length;
-                let radius: f64 = config.general.filament_diameter / 2.0;
-                let filament_length = path_volume / (3.14 * radius.powf(2.0));
-
-                let line = format!(
-                    "{} X{} Y{} E{:.2}\n",
-                    "G1", path_vec[0], path_vec[1], filament_length
-                );
-                gcode.push_str(line.as_str());
-
+                line = create_line(&start, &end, &config);
                 slice_retain.retain(|p| *p != path);
-                start = end;
+            } else {
+                (path, start_point_idx) = find_nearest_path(&slice_retain, &start);
+                start = path[start_point_idx];
+                let end_point_idx = if start_point_idx == 0 { 1 } else { 0 };
+                end = path[end_point_idx];
+                line = String::from("\n"); //create_travel_move(&start, &end);
             }
+            gcode.push_str(line.as_str());
+            start = end;
         }
         let z_hop = format!("{} Z{}\n", "G0", config.quality.layer_height);
         let layer_number = format!(";LAYER:{}\n", i);
@@ -46,17 +43,17 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
     return gcode;
 }
 
-pub fn displace_paths(paths: &mut Vec<Vec<[Vector3<f64>; 2]>>, placement: &[f64; 3]) {
-    for slice in paths.into_iter() {
-        for slice_paths in slice.into_iter() {
-            for path in slice_paths.into_iter() {
-                path[0] += placement[0];
-                path[1] += placement[1];
-                path[2] += placement[2];
-            }
-        }
-    }
-}
+// pub fn displace_paths(paths: &mut Vec<Vec<[Vector3<f64>; 2]>>, placement: &[f64; 3]) {
+//     for slice in paths.into_iter() {
+//         for slice_paths in slice.into_iter() {
+//             for path in slice_paths.into_iter() {
+//                 path[0] += placement[0];
+//                 path[1] += placement[1];
+//                 path[2] += placement[2];
+//             }
+//         }
+//     }
+// }
 
 fn find_nearest_path(
     paths: &Vec<[Vector3<f64>; 2]>,
@@ -97,4 +94,23 @@ fn find_connecting_path(
         }
     }
     return (false, nearest_path, nearest_point_idx);
+}
+
+fn create_line(start: &Vector3<f64>, end: &Vector3<f64>, config: &Config) -> String {
+    let path_vec = end - start;
+    let length = path_vec.norm();
+    let path_volume = config.quality.line_width * config.quality.layer_height * length;
+    let radius: f64 = config.general.filament_diameter / 2.0;
+    let filament_length = path_volume / (3.14 * radius.powf(2.0));
+
+    return format!(
+        "{} X{} Y{} E{:.2}\n",
+        "G1", path_vec[0], path_vec[1], filament_length
+    );
+}
+
+fn create_travel_move(start: &Vector3<f64>, end: &Vector3<f64>) -> String {
+    let path_vec = end - start;
+
+    return format!("{} X{} Y{}\n", "G0", path_vec[0], path_vec[1]);
 }
