@@ -9,6 +9,9 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
     let mut found_path: bool;
     let mut path: [Vector3<f64>; 2];
     let mut start_point_idx: usize;
+    let mut z_height: f64 = 0.0;
+    let mut extruder_postion: f64 = 0.0;
+
     for (i, slice) in paths.iter().enumerate() {
         let mut slice_retain = slice.to_owned();
         for j in 0..slice.len() {
@@ -20,22 +23,23 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
             }
             let line: String;
             if found_path {
-                start = path[start_point_idx];
                 let end_point_idx = if start_point_idx == 0 { 1 } else { 0 };
                 end = path[end_point_idx];
-                line = create_line(&start, &end, &config);
+                line = create_line(&end, &mut extruder_postion, &config);
                 slice_retain.retain(|p| *p != path);
+                gcode.push_str(line.as_str());
+                start = end;
             } else {
                 (path, start_point_idx) = find_nearest_path(&slice_retain, &start);
                 start = path[start_point_idx];
                 let end_point_idx = if start_point_idx == 0 { 1 } else { 0 };
                 end = path[end_point_idx];
-                line = String::from("\n"); //create_travel_move(&start, &end);
+                line = create_travel_move(&end);
+                gcode.push_str(line.as_str());
             }
-            gcode.push_str(line.as_str());
-            start = end;
         }
-        let z_hop = format!("{} Z{}\n", "G0", config.quality.layer_height);
+        z_height += config.quality.layer_height;
+        let z_hop = format!("{} Z{}\n", "G0", z_height);
         let layer_number = format!(";LAYER:{}\n", i);
         gcode.push_str(layer_number.as_str());
         gcode.push_str(z_hop.as_str());
@@ -96,21 +100,20 @@ fn find_connecting_path(
     return (false, nearest_path, nearest_point_idx);
 }
 
-fn create_line(start: &Vector3<f64>, end: &Vector3<f64>, config: &Config) -> String {
-    let path_vec = end - start;
+fn create_line(end: &Vector3<f64>, extruder_position: &mut f64, config: &Config) -> String {
+    let path_vec = end;
     let length = path_vec.norm();
     let path_volume = config.quality.line_width * config.quality.layer_height * length;
     let radius: f64 = config.general.filament_diameter / 2.0;
     let filament_length = path_volume / (3.14 * radius.powf(2.0));
+    *extruder_position += filament_length;
 
     return format!(
         "{} X{} Y{} E{:.2}\n",
-        "G1", path_vec[0], path_vec[1], filament_length
+        "G1", path_vec[0], path_vec[1], *extruder_position
     );
 }
 
-fn create_travel_move(start: &Vector3<f64>, end: &Vector3<f64>) -> String {
-    let path_vec = end - start;
-
-    return format!("{} X{} Y{}\n", "G0", path_vec[0], path_vec[1]);
+fn create_travel_move(end: &Vector3<f64>) -> String {
+    return format!("{} X{} Y{}\n", "G0", end[0], end[1]);
 }

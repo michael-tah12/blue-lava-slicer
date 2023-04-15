@@ -4,6 +4,7 @@ mod read_stl;
 mod slice;
 
 use nalgebra::Vector3;
+use std::env;
 use std::fs;
 
 use crate::read_config::read_config_toml;
@@ -11,9 +12,13 @@ use crate::read_stl::{read_stl_ascii, Triangle};
 use crate::slice::trivial;
 
 fn main() {
-    let config = read_config_toml("config.toml");
+    let args: Vec<String> = env::args().collect();
+    let stl_file: &str = &args[1];
+    let config_file: &str = &args[2];
 
-    let triangles: Vec<Triangle> = read_stl_ascii::read("suzanne.stl");
+    let config = read_config_toml(config_file);
+
+    let triangles: Vec<Triangle> = read_stl_ascii::read(stl_file);
     let mut outer_paths: Vec<Vec<[Vector3<f64>; 2]>> = Vec::new();
 
     let mut slice_z = 0.0;
@@ -27,6 +32,7 @@ fn main() {
             outer_paths.push(slice);
             slice_z += config.quality.layer_height;
         }
+        // keep_slicing = false
     }
 
     //gcode::displace_paths(&mut outer_paths, &config.general.placement);

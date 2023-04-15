@@ -1,8 +1,6 @@
 /target
-suzanne.gcode
-cube.gcode
+*.gcode
+!header.gcode
 *.blend*
-suzanne.gcode
-3DBenchy.gcode
 *.stl
 .DS_Store
