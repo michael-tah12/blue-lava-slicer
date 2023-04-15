@@ -1,4 +1,4 @@
-# Rust slicer
+# Blue-Lava-Slicer
 
 ## Description
-This is a slicer to create GCode for 3d Printing written in Rust. 
+This is a slicer to create GCode for 3D Printing written in Rust. 

@@ -4,3 +4,4 @@
 *.blend*
 *.stl
 .DS_Store
+.vscode

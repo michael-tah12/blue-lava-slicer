@@ -12,7 +12,15 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
     let mut z_height: f64 = 0.0;
     let mut extruder_postion: f64 = 0.0;
 
+    // Travel to start
+    let (path_start, path_start_idx) = find_nearest_path(&paths[0], &start);
+    let travel_to_start_gcode = create_travel_move(&path_start[path_start_idx]);
+    gcode.push_str(&travel_to_start_gcode);
+
     for (i, slice) in paths.iter().enumerate() {
+        let layer_number = format!(";LAYER:{}\n", i);
+        gcode.push_str(layer_number.as_str());
+
         let mut slice_retain = slice.to_owned();
         for j in 0..slice.len() {
             if j == 0 {
@@ -40,24 +48,10 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
         }
         z_height += config.quality.layer_height;
         let z_hop = format!("{} Z{}\n", "G0", z_height);
-        let layer_number = format!(";LAYER:{}\n", i);
-        gcode.push_str(layer_number.as_str());
         gcode.push_str(z_hop.as_str());
     }
     return gcode;
 }
-
-// pub fn displace_paths(paths: &mut Vec<Vec<[Vector3<f64>; 2]>>, placement: &[f64; 3]) {
-//     for slice in paths.into_iter() {
-//         for slice_paths in slice.into_iter() {
-//             for path in slice_paths.into_iter() {
-//                 path[0] += placement[0];
-//                 path[1] += placement[1];
-//                 path[2] += placement[2];
-//             }
-//         }
-//     }
-// }
 
 fn find_nearest_path(
     paths: &Vec<[Vector3<f64>; 2]>,

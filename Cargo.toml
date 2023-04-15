@@ -1,5 +1,5 @@
 [package]
-name = "rust-slicer"
+name = "blue-lava-slicer"
 version = "0.1.0"
 edition = "2021"
 
