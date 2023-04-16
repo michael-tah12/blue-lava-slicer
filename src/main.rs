@@ -41,7 +41,7 @@ fn main() {
     }
 
     // inner paths from outer paths
-    create_inner_paths_from_outer(&outer_paths);
+    let inner_paths = create_inner_paths_from_outer(&outer_paths);
 
     let gcode_head = String::from(fs::read_to_string("header.gcode").expect(""));
     let gcode_str = gcode::create_from_paths(&outer_paths, &config);
