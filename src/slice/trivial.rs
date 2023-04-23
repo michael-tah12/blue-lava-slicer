@@ -1,10 +1,11 @@
 extern crate nalgebra as na;
 
 use crate::read_stl::Triangle;
+use crate::slice::Path;
 use crate::slice::{delete_duplicate_paths, delete_null_paths, slicing_point_exists};
 use na::Vector3;
 
-pub fn slice(triangles: &Vec<Triangle>, plane_z: f64) -> Vec<[Vector3<f64>; 2]> {
+pub fn slice(triangles: &Vec<Triangle>, plane_z: f64) -> Vec<Path> {
     let pp = Vector3::new(0.0, 0.0, plane_z);
     let vp = Vector3::new(0.0, 0.0, 1.0);
     let mut vv: Vector3<f64>;
@@ -12,7 +13,7 @@ pub fn slice(triangles: &Vec<Triangle>, plane_z: f64) -> Vec<[Vector3<f64>; 2]> 
     let mut use_original_points = false;
 
     let mut slicing_points = [Vector3::new(0.0, 0.0, 0.0); 2];
-    let mut slicing_points_collection: Vec<[Vector3<f64>; 2]> = Vec::new();
+    let mut paths: Vec<Path> = Vec::new();
     let mut idx;
 
     for tr in triangles.iter() {
@@ -47,10 +48,14 @@ pub fn slice(triangles: &Vec<Triangle>, plane_z: f64) -> Vec<[Vector3<f64>; 2]> 
                 }
             }
         }
-        slicing_points_collection.push(slicing_points);
+        let p = Path {
+            points: slicing_points,
+            normal: tr.normal,
+        };
+        paths.push(p);
         slicing_points = [Vector3::new(0.0, 0.0, 0.0); 2]
     }
-    return delete_duplicate_paths(&delete_null_paths(&slicing_points_collection));
+    return delete_duplicate_paths(&delete_null_paths(&paths));
 }
 
 fn calculate_slicing_point(

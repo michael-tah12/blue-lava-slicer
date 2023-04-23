@@ -1,20 +1,21 @@
 use nalgebra::Vector3;
 
 use crate::read_config::Config;
+use crate::slice::Path;
 
-pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -> String {
+pub fn create_from_paths(paths: &Vec<Vec<Path>>, config: &Config) -> String {
     let mut gcode: String = String::from("");
     let mut start = Vector3::new(0.0, 0.0, 0.0);
     let mut end: Vector3<f64>;
     let mut found_path: bool;
-    let mut path: [Vector3<f64>; 2];
+    let mut path: Path;
     let mut start_point_idx: usize;
     let mut z_height: f64 = 0.0;
     let mut extruder_postion: f64 = 0.0;
 
     // Travel to start
     let (path_start, path_start_idx) = find_nearest_path(&paths[0], &start);
-    let travel_to_start_gcode = create_travel_move(&path_start[path_start_idx]);
+    let travel_to_start_gcode = create_travel_move(&path_start.points[path_start_idx]);
     gcode.push_str(&travel_to_start_gcode);
 
     for (i, slice) in paths.iter().enumerate() {
@@ -32,16 +33,16 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
             let line: String;
             if found_path {
                 let end_point_idx = if start_point_idx == 0 { 1 } else { 0 };
-                end = path[end_point_idx];
+                end = path.points[end_point_idx];
                 line = create_line(&end, &mut extruder_postion, &config);
-                slice_retain.retain(|p| *p != path);
+                slice_retain.retain(|p| p.points != path.points);
                 gcode.push_str(line.as_str());
                 start = end;
             } else {
                 (path, start_point_idx) = find_nearest_path(&slice_retain, &start);
-                start = path[start_point_idx];
+                start = path.points[start_point_idx];
                 let end_point_idx = if start_point_idx == 0 { 1 } else { 0 };
-                end = path[end_point_idx];
+                end = path.points[end_point_idx];
                 line = create_travel_move(&end);
                 gcode.push_str(line.as_str());
             }
@@ -53,17 +54,14 @@ pub fn create_from_paths(paths: &Vec<Vec<[Vector3<f64>; 2]>>, config: &Config) -
     return gcode;
 }
 
-fn find_nearest_path(
-    paths: &Vec<[Vector3<f64>; 2]>,
-    point: &Vector3<f64>,
-) -> ([Vector3<f64>; 2], usize) {
-    let mut nearest_path = [Vector3::zeros(); 2];
+fn find_nearest_path(paths: &Vec<Path>, point: &Vector3<f64>) -> (Path, usize) {
     let mut nearest_point_idx: usize = 0;
+    let mut nearest_path: Path = Path::new();
     let mut parr_norm_min = 1000.0;
     let mut parr_norm: f64;
     for path in paths.iter() {
         for i in 0..2 {
-            parr_norm = (path[i] - point).norm();
+            parr_norm = (path.points[i] - point).norm();
             if parr_norm < parr_norm_min {
                 parr_norm_min = parr_norm;
                 nearest_path = *path;
@@ -74,16 +72,13 @@ fn find_nearest_path(
     return (nearest_path, nearest_point_idx);
 }
 
-fn find_connecting_path(
-    paths: &Vec<[Vector3<f64>; 2]>,
-    point: &Vector3<f64>,
-) -> (bool, [Vector3<f64>; 2], usize) {
-    let mut nearest_path = [Vector3::zeros(); 2];
+fn find_connecting_path(paths: &Vec<Path>, point: &Vector3<f64>) -> (bool, Path, usize) {
+    let mut nearest_path: Path = Path::new();
     let mut nearest_point_idx: usize = 0;
     let mut parr_norm: f64;
     for path in paths.iter() {
         for i in 0..2 {
-            parr_norm = (path[i] - point).norm();
+            parr_norm = (path.points[i] - point).norm();
             if parr_norm == 0.0 {
                 nearest_path = *path;
                 nearest_point_idx = i;

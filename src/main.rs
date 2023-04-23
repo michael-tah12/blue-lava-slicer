@@ -11,7 +11,7 @@ use std::fs;
 use crate::inner_walls::create_inner_paths_from_outer;
 use crate::read_config::read_config_toml;
 use crate::read_stl::{read_stl_ascii, Triangle};
-use crate::slice::trivial;
+use crate::slice::{trivial, Path};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -22,10 +22,10 @@ fn main() {
     let config = read_config_toml(config_file);
 
     let triangles: Vec<Triangle> = read_stl_ascii::read(stl_file);
-    let mut outer_paths: Vec<Vec<[Vector3<f64>; 2]>> = Vec::new();
+    let mut outer_paths: Vec<Vec<Path>> = Vec::new();
 
     let mut slice_z = 0.0;
-    let mut slice: Vec<[Vector3<f64>; 2]>;
+    let mut slice: Vec<Path>;
     let mut keep_slicing = true;
 
     // slice outer paths
@@ -41,7 +41,7 @@ fn main() {
     }
 
     // inner paths from outer paths
-    let inner_paths = create_inner_paths_from_outer(&outer_paths);
+    create_inner_paths_from_outer(&outer_paths);
 
     let gcode_head = String::from(fs::read_to_string("header.gcode").expect(""));
     let gcode_str = gcode::create_from_paths(&outer_paths, &config);

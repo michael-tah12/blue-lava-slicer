@@ -4,6 +4,21 @@ use na::Vector3;
 
 pub mod trivial;
 
+#[derive(Debug, Clone, Copy)]
+pub struct Path {
+    pub points: [Vector3<f64>; 2],
+    pub normal: Vector3<f64>,
+}
+
+impl Path {
+    pub fn new() -> Self {
+        return Self {
+            points: [Vector3::zeros(), Vector3::zeros()],
+            normal: Vector3::zeros(),
+        };
+    }
+}
+
 // pub fn number_of_slices(triangles: &Vec<Triangle>) -> int {
 //     let mut max_z: f64 = 0.0;
 //     let mut min_z: f64 = 0.0;
@@ -29,20 +44,24 @@ fn slicing_point_exists(point1: &Vector3<f64>, point2: &Vector3<f64>, plane_z: &
     }
 }
 
-fn delete_null_paths(paths: &Vec<[Vector3<f64>; 2]>) -> Vec<[Vector3<f64>; 2]> {
-    let mut filtered_paths: Vec<[Vector3<f64>; 2]> = Vec::new();
+fn delete_null_paths(paths: &Vec<Path>) -> Vec<Path> {
+    let mut filtered_paths: Vec<Path> = Vec::new();
     for path in paths.iter() {
-        if path[0] != path[1] {
+        if path.points[0] != path.points[1] {
             filtered_paths.push(*path)
         }
     }
     return filtered_paths;
 }
 
-fn delete_duplicate_paths(paths: &Vec<[Vector3<f64>; 2]>) -> Vec<[Vector3<f64>; 2]> {
-    let mut filtered_paths: Vec<[Vector3<f64>; 2]> = Vec::new();
+fn delete_duplicate_paths(paths: &Vec<Path>) -> Vec<Path> {
+    let mut filtered_paths: Vec<Path> = Vec::new();
     for path in paths.iter() {
-        if !filtered_paths.contains(&path) {
+        let path_match: Vec<&Path> = filtered_paths
+            .iter()
+            .filter(|p| p.points == path.points)
+            .collect();
+        if path_match.is_empty() {
             filtered_paths.push(*path)
         }
     }
